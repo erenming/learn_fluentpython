@@ -21,8 +21,8 @@ DEFAULT_CONCUR_REQ = 1
 MAX_CONCUR_REQ = 1
 
 SERVERS = {
-    'REMOTE': 'http://flupy.org/data/flags',
-    'LOCAL':  'http://30.40.112.74:8001/flags',
+    'REMOTE': 'http://flupy.org/data/flags/',
+    'LOCAL':  'http://30.40.112.74:8001/flags/',
     'DELAY':  'http://30.40.112.74:8002/flags',
     'ERROR':  'http://30.40.112.74:8003/flags',
 }
