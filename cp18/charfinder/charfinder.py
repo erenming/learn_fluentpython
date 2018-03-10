@@ -1,3 +1,4 @@
+
 """
 Unicode character finder utility:
 find characters based on words in their official names.
@@ -15,8 +16,10 @@ Here is the ``main`` function which makes it happen::
     (1 match for 'white bishop')
     >>> main("jabberwocky's vest")
     (No match for "jabberwocky's vest")
+    
 For exploring words that occur in the character names, there is the
 ``word_report`` function::
+
     >>> index = UnicodeNameIndex(sample_chars)
     >>> index.word_report()
         3 SIGN
@@ -40,6 +43,7 @@ For exploring words that occur in the character names, there is the
      2180 SIGN
      2122 SMALL
      1709 CAPITAL
+
 Note: characters with names starting with 'CJK UNIFIED IDEOGRAPH'
 are indexed with those three words only, excluding the hexadecimal
 codepoint at the end of the name.
@@ -72,13 +76,14 @@ sample_chars = [
 ]
 
 CharDescription = namedtuple('CharDescription', 'code_str char name')
+
 QueryResult = namedtuple('QueryResult', 'count items')
 
 
 def tokenize(text):
     """return iterable of uppercased words"""
     for match in RE_WORD.finditer(text):
-        yield  match.group().upper()
+        yield match.group().upper()
 
 
 def query_type(text):
@@ -91,7 +96,8 @@ def query_type(text):
         return 'CHARACTERS'
 
 
-class UnicodedNameIndex:
+class UnicodeNameIndex:
+
     def __init__(self, chars=None):
         self.load(chars)
 
@@ -103,14 +109,14 @@ class UnicodedNameIndex:
                     self.index = pickle.load(fp)
             except OSError:
                 pass
-
         if self.index is None:
             self.build_index(chars)
         if len(self.index) > MINIMUM_SAVE_LEN:
             try:
                 self.save()
             except OSError as exc:
-                warnings.warn('Cound not save {!r}: {}'.format(INDEX_NAME, exc))
+                warnings.warn('Could not save {!r}: {}'
+                              .format(INDEX_NAME, exc))
 
     def save(self):
         with open(INDEX_NAME, 'wb') as fp:
@@ -119,14 +125,12 @@ class UnicodedNameIndex:
     def build_index(self, chars=None):
         if chars is None:
             chars = (chr(i) for i in range(32, sys.maxunicode))
-
         index = {}
         for char in chars:
             try:
                 name = unicodedata.name(char)
             except ValueError:
                 continue
-
             if name.startswith(CJK_UNI_PREFIX):
                 name = CJK_UNI_PREFIX
             elif name.startswith(CJK_CMP_PREFIX):
@@ -138,26 +142,31 @@ class UnicodedNameIndex:
         self.index = index
 
     def word_rank(self, top=None):
-        res = [(len(self.index[key])) for key in self.index]
+        res = [(len(self.index[key]), key) for key in self.index]
         res.sort(key=lambda item: (-item[0], item[1]))
-        if top is None:
+        if top is not None:
             res = res[:top]
         return res
+
+    def word_report(self, top=None):
+        for postings, key in self.word_rank(top):
+            print('{:5} {}'.format(postings, key))
 
     def find_chars(self, query, start=0, stop=None):
         stop = sys.maxsize if stop is None else stop
         result_sets = []
         for word in tokenize(query):
             chars = self.index.get(word)
-            if chars is None:
+            if chars is None:  # shorcut: no such word
                 result_sets = []
                 break
             result_sets.append(chars)
+
         if not result_sets:
             return QueryResult(0, ())
 
         result = functools.reduce(set.intersection, result_sets)
-        result = sorted(result)
+        result = sorted(result)  # must sort to support start, stop
         result_iter = itertools.islice(result, start, stop)
         return QueryResult(len(result),
                            (char for char in result_iter))
@@ -194,16 +203,17 @@ class UnicodedNameIndex:
 
 
 def main(*args):
-    index = UnicodedNameIndex()
+    index = UnicodeNameIndex()
     query = ' '.join(args)
     n = 0
     for n, line in enumerate(index.find_description_strs(query), 1):
         print(line)
     print('({})'.format(index.status(query, n)))
 
-
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        main(*sys.argv[1:])
-    else:
-        print('Usage: {} word1 [word2]...'.format(sys.argv[0]))
+    import doctest
+    doctest.testmod()
+    # if len(sys.argv) > 1:
+    #     main(*sys.argv[1:])
+    # else:
+    #     print('Usage: {} word1 [word2]...'.format(sys.argv[0]))

@@ -1,8 +1,15 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
 import sys
+import asyncio
 
-try:
-    pass
-except ImportError:
-    pass
+from cp18.charfinder.charfinder import UnicodeNameIndex
+
+
+CRLF = B'\r\n'
+PROMPT = b'?>'
+
+index = UnicodeNameIndex()
+
+@asyncio.coroutine
+def handle_queries(reader, writer):
+    while True:
+        writer.write(PROMPT)
