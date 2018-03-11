@@ -33,16 +33,16 @@ For exploring words that occur in the character names, there is the
         1 SMALL
     >>> index = UnicodeNameIndex()
     >>> index.word_report(10)
-    75821 CJK
-    75761 IDEOGRAPH
-    74656 UNIFIED
-    13196 SYLLABLE
+    81592 CJK
+    81532 IDEOGRAPH
+    80427 UNIFIED
+    13393 SYLLABLE
     11735 HANGUL
-     7616 LETTER
-     2232 WITH
-     2180 SIGN
-     2122 SMALL
-     1709 CAPITAL
+     8913 LETTER
+     2985 SIGN
+     2452 SMALL
+     2423 WITH
+     1815 CAPITAL
 
 Note: characters with names starting with 'CJK UNIFIED IDEOGRAPH'
 are indexed with those three words only, excluding the hexadecimal
@@ -56,6 +56,7 @@ import pickle
 import warnings
 import itertools
 import functools
+from tqdm import tqdm
 from collections import namedtuple
 
 RE_WORD = re.compile('\w+')
@@ -82,7 +83,7 @@ QueryResult = namedtuple('QueryResult', 'count items')
 
 def tokenize(text):
     """return iterable of uppercased words"""
-    for match in RE_WORD.finditer(text):
+    for match in tqdm(RE_WORD.finditer(text)):
         yield match.group().upper()
 
 
@@ -211,9 +212,7 @@ def main(*args):
     print('({})'.format(index.status(query, n)))
 
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-    # if len(sys.argv) > 1:
-    #     main(*sys.argv[1:])
-    # else:
-    #     print('Usage: {} word1 [word2]...'.format(sys.argv[0]))
+    if len(sys.argv) > 1:
+        main(*sys.argv[1:])
+    else:
+        print('Usage: {} word1 [word2]...'.format(sys.argv[0]))
