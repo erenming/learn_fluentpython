@@ -16,7 +16,8 @@
 
 import warnings
 
-import osconfeed
+
+from cp19 import osconfeed
 
 
 DB_NAME = 'data/schedule1_db'
@@ -38,6 +39,13 @@ def load_db(db):
             record['serial'] = key
             db[key] = Record(**record)
 
+def main():
+    import shelve
+    db = shelve.open(DB_NAME)  # <1>
+    load_db(db)  # <3>
+    speaker = db['speaker.3471']  # <4>
+    speaker.name, speaker.twitter  # <6>
+    db.close()  # <7>
+
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+    main()
