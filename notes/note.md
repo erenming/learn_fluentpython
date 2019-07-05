@@ -63,9 +63,17 @@
     - `yield from`: 产出从另一个生成器生成的值
 13. 列表的内部实现：`动态数组`。通过已分配的内存大小动态调整数组大小
 14. 垃圾回收机制：
-    1. 引用计数
-    2. 标记-清除机制：利用图的数据结构，对象为顶点，引用为边
-    3. 分代回收机制：将系统中的内存块根据存活时间划分为不同集合，每个集合为一个“代”，垃圾收集频率随“代”的存活时间增加而降低
+    1. 引用计数: 主要的
+        - 直接而高效，但是无法处理循环引用
+        - every object (even integer) has an extra field called reference count that is increased or decreased when a pointer to the object is copied or deleted
+        - If reference counting field reaches zero, CPython automatically calls the object-specific deallocation function.
+    2. 分代回收机制：将系统中的内存块根据存活时间划分为不同集合，每个集合为一个“代”，垃圾收集频率随“代”的存活时间增加而降低
+        - 主要用于解决循环引用，Python1.5引进，gc模块负责
+        - 分三代：新对象为第一代，如果一个对象在一次垃圾回收后仍存活，则升级为老一代。越新垃圾收集越频繁
+        - 循环引用：
+            1. 循环引用只可能出现在容器对象中
+            2. 编码中为避免循环应用，可使用弱引用
+            3. 使用`objgraph`包生成引用图
 15. `obj.attr`: Python调用特殊方法(`__getattr__`或`__setattr__`)
 16. `__new__`: 用于构建实例，返回一个实例。`__init__`: 用于初始化实例
 17. 动态属性：应用场景：`a["b"][0]`转换为`a.b[0]`
